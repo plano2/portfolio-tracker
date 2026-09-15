@@ -24,18 +24,18 @@ input,select{padding:6px;border-radius:6px;border:1px solid #334155;background:#
 <div class="card" id="total"></div>
 <div class="grid">
 <div class="card"><h2>💰 دارایی‌ها</h2><table id="assets"><tr><th>نماد</th><th>مقدار</th><th>میانگین</th><th>قیمت فعلی</th><th>ارزش</th><th>سود/زیان</th><th>سهم</th></tr></table>
-<form id="addAsset" style="margin-top:10px"><input name="symbol" placeholder="نماد BTC" required style="width:80px"> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="avg" type="number" step="any" placeholder="میانگین $" required style="width:110px"> <button class="btn">➕ افزودن</button></form>
+<form id="addAsset" style="margin-top:10px"><select name="symbol" required style="width:160px"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس کوین</option><option value="USD">USD - دلار نقدی</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="avg" type="number" step="any" placeholder="میانگین $" required style="width:110px"> <button class="btn">➕ افزودن</button></form>
 </div>
 <div class="card"><h2>⚖️ Allocation</h2><canvas id="alloc" height="200"></canvas></div>
 </div>
 <div class="card"><h2>🧾 معاملات</h2>
-<form id="txForm"><select name="type"><option>خرید</option><option>فروش</option><option>انتقال</option></select> <select name="symbol"><option>BTC</option><option>ETH</option><option>PAXG</option><option>GOLD</option><option>USD</option><option>SOL</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="price" type="number" step="any" placeholder="قیمت $" required style="width:110px"> <input name="fee" type="number" step="any" placeholder="کارمزد" value="0" style="width:80px"> <button class="btn">ثبت</button></form>
+<form id="txForm"><select name="type"><option>خرید</option><option>فروش</option><option>انتقال</option></select> <select name="symbol"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس</option><option value="USD">USD - دلار</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="price" type="number" step="any" placeholder="قیمت $" required style="width:110px"> <input name="fee" type="number" step="any" placeholder="کارمزد" value="0" style="width:80px"> <button class="btn">ثبت</button></form>
 <table id="txs" style="margin-top:10px"><tr><th>تاریخ</th><th>نوع</th><th>نماد</th><th>مقدار</th><th>قیمت</th><th>کارمزد</th></tr></table>
 </div>
 <div class="grid">
 <div class="card"><h2>📉 نمودار ارزش</h2><canvas id="chart" height="180"></canvas></div>
 <div class="card"><h2>🔔 هشدار + 💵 نقد و گزارش</h2>
-<form id="alertForm"><select name="symbol"><option>BTC</option><option>ETH</option><option>PAXG</option></select> <input name="target" type="number" step="any" placeholder="قیمت هدف $" required style="width:120px"> <button class="btn">🔔 افزودن هشدار</button></form>
+<form id="alertForm"><select name="symbol"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option></select> <input name="target" type="number" step="any" placeholder="قیمت هدف $" required style="width:120px"> <button class="btn">🔔 افزودن هشدار</button></form>
 <div id="alerts" style="margin:8px 0"></div>
 <hr style="border-color:#334155">
 <form id="cashForm">نقد USD: <input name="usd" type="number" step="any" style="width:100px" id="cashUsd"> نرخ USD→تومان: <input name="rate" type="number" style="width:110px" id="rate"> <button class="btn">💾 ذخیره</button></form>
@@ -45,6 +45,7 @@ input,select{padding:6px;border-radius:6px;border:1px solid #334155;background:#
 </div>
 <script>
 let data={}, prices={};
+const faNames={"BTC":"بیتکوین","ETH":"اتریوم","PAXG":"طلای پکس","GOLD":"طلا","USDT":"تتر","IRT":"تومان","SOL":"سولانا","BNB":"بایننس کوین","USD":"دلار نقدی"};
 async function load(){ data=await (await fetch('/api/data')).json(); prices=await (await fetch('/api/prices')).json(); render(); }
 function render(){
   let total= (data.cash?.USD||0), vals=[];
@@ -56,12 +57,14 @@ function render(){
   });
   let rate=data.usd_to_toman||60000, toman=total*rate, rial=toman*10;
   let pnl = data.assets.reduce((s,a)=> s + ((prices[a.symbol]||0)-a.avg_price)*a.amount,0);
-  document.getElementById('total').innerHTML=`<b>📊 ارزش کل: $${total.toLocaleString(undefined,{maximumFractionDigits:2})} | ${Math.round(toman).toLocaleString()} تومان | ${Math.round(rial).toLocaleString()} ریال | سود/زیان: $${pnl.toLocaleString(undefined,{maximumFractionDigits:2})}</b> <button class="btn" onclick="load()">🔄 بروزرسانی قیمت</button>`;
+  let pnlToman = pnl*rate;
+  let pnlPct = total-pnl!=0 ? (pnl/(total-pnl)*100) : 0;
+  document.getElementById('total').innerHTML=`<b>📊 ارزش کل: $${total.toLocaleString(undefined,{maximumFractionDigits:2})} | ${Math.round(toman).toLocaleString()} تومان | ${Math.round(rial).toLocaleString()} ریال<br>💹 سود/زیان کل: <span style="color:${pnl>=0?'#4ade80':'#f87171'}">$${pnl.toLocaleString(undefined,{maximumFractionDigits:2})} | ${Math.round(pnlToman).toLocaleString()} تومان | ${pnlPct.toFixed(2)}%</span></b> <button class="btn" onclick="load()">🔄 بروزرسانی قیمت</button>`;
   let tbl=document.getElementById('assets'); tbl.innerHTML='<tr><th>نماد</th><th>مقدار</th><th>میانگین</th><th>قیمت فعلی</th><th>ارزش</th><th>سود/زیان</th><th>سهم</th></tr>';
   data.assets.forEach((a,i)=>{
-    let cur=prices[a.symbol]||0, val=a.amount*cur, pnlA=(cur-a.avg_price)*a.amount, alloc= total? val/total*100:0;
-    tbl.innerHTML+=`<tr><td>${a.symbol}</td><td>${a.amount}</td><td>$${a.avg_price.toLocaleString()}</td><td>$${cur.toLocaleString()}</td><td>$${val.toLocaleString(undefined,{maximumFractionDigits:0})}</td><td style="color:${pnlA>=0?'#4ade80':'#f87171'}">$${pnlA.toLocaleString(undefined,{maximumFractionDigits:0})}</td><td>${alloc.toFixed(1)}% <button onclick="delAsset(${i})" style="color:red;background:none;border:0;cursor:pointer">×</button></td></tr>`;
-    allocLabels.push(a.symbol); allocVals.push(val);
+    let cur=prices[a.symbol]||0, val=a.amount*cur, pnlA=(cur-a.avg_price)*a.amount, pnlT=pnlA*(data.usd_to_toman||60000), pnlPct=a.avg_price?((cur-a.avg_price)/a.avg_price*100):0, alloc= total? val/total*100:0;
+    tbl.innerHTML+=`<tr><td>${a.symbol} - ${faNames[a.symbol]||""}</td><td>${a.amount}</td><td>$${a.avg_price.toLocaleString()}</td><td>$${cur.toLocaleString()}</td><td>$${val.toLocaleString(undefined,{maximumFractionDigits:0})}</td><td style="color:${pnlA>=0?'#4ade80':'#f87171'}">$${pnlA.toLocaleString(undefined,{maximumFractionDigits:0})}<br><small>${Math.round(pnlT).toLocaleString()} ت | ${pnlPct.toFixed(1)}%</small></td><td>${alloc.toFixed(1)}% <button onclick="delAsset(${i})" style="color:red;background:none;border:0;cursor:pointer">×</button></td></tr>`;
+    allocLabels.push(a.symbol + " - " + (faNames[a.symbol]||"")); allocVals.push(val);
   });
   document.getElementById('cashUsd').value=data.cash?.USD||0;
   document.getElementById('rate').value=rate;
@@ -110,9 +113,17 @@ def fetch_prices():
     try:
         r=requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,pax-gold,tether,solana,binancecoin&vs_currencies=usd", timeout=8)
         j=r.json()
-        m={"BTC":j.get("bitcoin",{}).get("usd",0),"ETH":j.get("ethereum",{}).get("usd",0),"PAXG":j.get("pax-gold",{}).get("usd",0),"GOLD":j.get("pax-gold",{}).get("usd",0),"USDT":1,"USD":1,"SOL":j.get("solana",{}).get("usd",0),"BNB":j.get("binancecoin",{}).get("usd",0)}
+        m={"BTC":j.get("bitcoin",{}).get("usd",0),"ETH":j.get("ethereum",{}).get("usd",0),"PAXG":j.get("pax-gold",{}).get("usd",0),"GOLD":j.get("pax-gold",{}).get("usd",0),"USDT":1,"IRT":1,"USD":1,"SOL":j.get("solana",{}).get("usd",0),"BNB":j.get("binancecoin",{}).get("usd",0)}
+        # IRT (تومان) قیمت دلاری = 1 / نرخ دلار به تومان (اگر تنظیم شده باشد)
+        try:
+            d=load_data()
+            rate=d.get("usd_to_toman",0)
+            if rate and rate>0:
+                m["IRT"]=1/rate
+                m["TOMAN"]=1/rate
+        except: pass
         return m
-    except: return {"BTC":77000,"ETH":2500,"PAXG":2000,"GOLD":2000,"USD":1,"USDT":1}
+    except: return {"BTC":77000,"ETH":2500,"PAXG":2000,"GOLD":2000,"USD":1,"USDT":1,"IRT":0.00001}
 
 @app.route("/")
 def index(): return render_template_string(HTML)
@@ -173,13 +184,19 @@ def report(period):
     d=load_data(); prices=fetch_prices()
     total=sum(a["amount"]*prices.get(a["symbol"],0) for a in d["assets"])+d["cash"].get("USD",0)
     pnl=sum(((prices.get(a["symbol"],0)-a["avg_price"])*a["amount"]) for a in d["assets"])
+    rate=d.get("usd_to_toman",60000)
+    pnl_toman=pnl*rate
+    cost=total-pnl
+    pnl_pct=(pnl/cost*100) if cost else 0
     hist=d.get("history",[]); change=0
     if period=="daily" and len(hist)>=2: change=total-hist[-2]["total"]
     if period=="weekly" and len(hist)>=7: change=total-hist[-7]["total"]
-    text=f"📅 گزارش {'روزانه' if period=='daily' else 'هفتگی'} - {datetime.date.today()}\nارزش کل: ${total:,.2f}\nسود/زیان: ${pnl:,.2f}\nتغییر: ${change:,.2f}\n"
+    text=f"📅 گزارش {'روزانه' if period=='daily' else 'هفتگی'} - {datetime.date.today()}\nارزش کل: ${total:,.2f} | {total*rate:,.0f} تومان\nسود/زیان: ${pnl:,.2f} | {pnl_toman:,.0f} تومان | {pnl_pct:.2f}%\nتغییر: ${change:,.2f}\n"
     for a in d["assets"]:
         cur=prices.get(a["symbol"],0)
-        text+=f" - {a['symbol']}: {a['amount']} × ${cur:,.0f} = ${a['amount']*cur:,.0f} (میانگین ${a['avg_price']:,.0f})\n"
+        pnlA=(cur-a["avg_price"])*a["amount"]
+        pct=((cur-a["avg_price"])/a["avg_price"]*100) if a["avg_price"] else 0
+        text+=f" - {a['symbol']}: {a['amount']} × ${cur:,.0f} = ${a['amount']*cur:,.0f} | سود ${pnlA:,.0f} ({pct:.1f}%)\n"
     return jsonify({"text":text})
 
 if __name__=="__main__":
