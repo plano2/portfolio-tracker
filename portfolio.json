@@ -1,57 +1,65 @@
 {
-  "assets": [
-    {
-      "symbol": "BTC",
-      "amount": 0.060000000000000005,
-      "avg_price": 67083.33333333333
-    },
-    {
-      "symbol": "ETH",
-      "amount": 1.2,
-      "avg_price": 2500
-    },
-    {
-      "symbol": "PAXG",
-      "amount": 2,
-      "avg_price": 2000
+  "portfolios": {
+    "real": {
+      "name": "واقعی",
+      "strategy": "واقعی",
+      "initial_capital": 12295.0,
+      "assets": [
+        {
+          "symbol": "BTC",
+          "amount": 0.07,
+          "avg_price": 68500.0
+        },
+        {
+          "symbol": "ETH",
+          "amount": 1.2,
+          "avg_price": 2500
+        },
+        {
+          "symbol": "PAXG",
+          "amount": 2,
+          "avg_price": 2000
+        }
+      ],
+      "cash": {
+        "USD": 500,
+        "TOMAN": 0
+      },
+      "transactions": [
+        {
+          "date": "2026-09-15 14:29",
+          "type": "خرید",
+          "symbol": "BTC",
+          "amount": 0.01,
+          "price": 77000,
+          "fee": 0
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-09-10",
+          "total": 8500
+        },
+        {
+          "date": "2026-09-11",
+          "total": 8700
+        },
+        {
+          "date": "2026-09-12",
+          "total": 8600
+        },
+        {
+          "date": "2026-09-15",
+          "total": 16768.296000000002
+        }
+      ]
     }
-  ],
-  "cash": {
-    "USD": 500,
-    "TOMAN": 0
   },
-  "transactions": [
-    {
-      "date": "2026-09-15 04:06",
-      "type": "خرید",
-      "symbol": "BTC",
-      "amount": 0.01,
-      "price": 77000,
-      "fee": 5
-    }
-  ],
+  "active": "real",
   "alerts": [
     {
       "symbol": "BTC",
       "target": 80000
-    }
-  ],
-  "history": [
-    {
-      "date": "2026-09-10",
-      "total": 8500
-    },
-    {
-      "date": "2026-09-11",
-      "total": 8700
-    },
-    {
-      "date": "2026-09-12",
-      "total": 8600
-    },
-    {
-      "date": "2026-09-15",
-      "total": 16768.296000000002
     }
   ],
   "usd_to_toman": 60000
