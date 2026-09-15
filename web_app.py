@@ -183,4 +183,11 @@ def report(period):
     return jsonify({"text":text})
 
 if __name__=="__main__":
+    import webbrowser, threading, time
+    def open_browser():
+        time.sleep(1.5)
+        try: webbrowser.open("http://127.0.0.1:8081")
+        except: pass
+    threading.Thread(target=open_browser, daemon=True).start()
+    print("Portfolio Tracker running at http://127.0.0.1:8081 - browser will open automatically. Do not close this window.")
     app.run(host="0.0.0.0", port=8081, debug=False)
