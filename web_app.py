@@ -24,13 +24,13 @@ input,select{padding:6px;border-radius:6px;border:1px solid #334155;background:#
 <div class="card" id="total"></div>
 <div class="grid">
 <div class="card"><h2>💰 دارایی‌ها</h2><table id="assets"><tr><th>نماد</th><th>مقدار</th><th>میانگین</th><th>قیمت فعلی</th><th>ارزش</th><th>سود/زیان</th><th>سهم</th></tr></table>
-<form id="addAsset" style="margin-top:10px"><select name="symbol" required style="width:160px"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس کوین</option><option value="USD">USD - دلار نقدی</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="avg" type="number" step="any" placeholder="میانگین $" required style="width:110px"> <button class="btn">➕ افزودن</button></form>
+<form id="addAsset" style="margin-top:10px"><select name="symbol" required style="width:160px"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس کوین</option><option value="USD">USD - دلار نقدی</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="avg" type="number" step="any" placeholder="میانگین $" required style="width:110px"> <button class="btn">➕ افزودن</button> <button type="button" class="btn" style="background:#ef4444" onclick="clearAssets()">🗑 حذف همه دارایی‌ها</button></form>
 </div>
 <div class="card"><h2>⚖️ Allocation</h2><canvas id="alloc" height="200"></canvas></div>
 </div>
 <div class="card"><h2>🧾 معاملات</h2>
-<form id="txForm"><select name="type"><option>خرید</option><option>فروش</option><option>انتقال</option></select> <select name="symbol"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس</option><option value="USD">USD - دلار</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="price" type="number" step="any" placeholder="قیمت $" required style="width:110px"> <input name="fee" type="number" step="any" placeholder="کارمزد" value="0" style="width:80px"> <button class="btn">ثبت</button></form>
-<table id="txs" style="margin-top:10px"><tr><th>تاریخ</th><th>نوع</th><th>نماد</th><th>مقدار</th><th>قیمت</th><th>کارمزد</th></tr></table>
+<form id="txForm"><select name="type"><option>خرید</option><option>فروش</option><option>انتقال</option></select> <select name="symbol"><option value="BTC">BTC - بیتکوین</option><option value="ETH">ETH - اتریوم</option><option value="PAXG">PAXG - طلای پکس</option><option value="GOLD">GOLD - طلا</option><option value="USDT">USDT - تتر</option><option value="IRT">IRT - تومان</option><option value="SOL">SOL - سولانا</option><option value="BNB">BNB - بایننس</option><option value="USD">USD - دلار</option></select> <input name="amount" type="number" step="any" placeholder="مقدار" required style="width:90px"> <input name="price" type="number" step="any" placeholder="قیمت $" required style="width:110px"> <input name="fee" type="number" step="any" placeholder="کارمزد" value="0" style="width:80px"> <button class="btn">ثبت</button> <button type="button" class="btn" style="background:#ef4444" onclick="clearTxs()">🗑 حذف همه معاملات</button></form>
+<table id="txs" style="margin-top:10px"><tr><th>تاریخ</th><th>نوع</th><th>نماد</th><th>مقدار</th><th>قیمت</th><th>کارمزد</th><th>حذف</th></tr></table>
 </div>
 <div class="grid">
 <div class="card"><h2>📉 نمودار ارزش</h2><canvas id="chart" height="180"></canvas></div>
@@ -63,14 +63,17 @@ function render(){
   let tbl=document.getElementById('assets'); tbl.innerHTML='<tr><th>نماد</th><th>مقدار</th><th>میانگین</th><th>قیمت فعلی</th><th>ارزش</th><th>سود/زیان</th><th>سهم</th></tr>';
   data.assets.forEach((a,i)=>{
     let cur=prices[a.symbol]||0, val=a.amount*cur, pnlA=(cur-a.avg_price)*a.amount, pnlT=pnlA*(data.usd_to_toman||60000), pnlPct=a.avg_price?((cur-a.avg_price)/a.avg_price*100):0, alloc= total? val/total*100:0;
-    tbl.innerHTML+=`<tr><td>${a.symbol} - ${faNames[a.symbol]||""}</td><td>${a.amount}</td><td>$${a.avg_price.toLocaleString()}</td><td>$${cur.toLocaleString()}</td><td>$${val.toLocaleString(undefined,{maximumFractionDigits:0})}</td><td style="color:${pnlA>=0?'#4ade80':'#f87171'}">$${pnlA.toLocaleString(undefined,{maximumFractionDigits:0})}<br><small>${Math.round(pnlT).toLocaleString()} ت | ${pnlPct.toFixed(1)}%</small></td><td>${alloc.toFixed(1)}% <button onclick="delAsset(${i})" style="color:red;background:none;border:0;cursor:pointer">×</button></td></tr>`;
+    tbl.innerHTML+=`<tr><td>${a.symbol} - ${faNames[a.symbol]||""}</td><td>${a.amount}</td><td>$${a.avg_price.toLocaleString()}</td><td>$${cur.toLocaleString()}</td><td>$${val.toLocaleString(undefined,{maximumFractionDigits:0})}</td><td style="color:${pnlA>=0?'#4ade80':'#f87171'}">$${pnlA.toLocaleString(undefined,{maximumFractionDigits:0})}<br><small>${Math.round(pnlT).toLocaleString()} ت | ${pnlPct.toFixed(1)}%</small></td><td>${alloc.toFixed(1)}% <button onclick="delAsset(${i})" title="حذف این دارایی" style="background:#ef4444;color:white;border:0;border-radius:6px;padding:4px 8px;cursor:pointer">🗑 حذف</button></td></tr>`;
     allocLabels.push(a.symbol + " - " + (faNames[a.symbol]||"")); allocVals.push(val);
   });
   document.getElementById('cashUsd').value=data.cash?.USD||0;
   document.getElementById('rate').value=rate;
   // txs
-  let txTbl=document.getElementById('txs'); txTbl.innerHTML='<tr><th>تاریخ</th><th>نوع</th><th>نماد</th><th>مقدار</th><th>قیمت</th><th>کارمزد</th></tr>';
-  (data.transactions||[]).slice(-20).reverse().forEach(t=>{txTbl.innerHTML+=`<tr><td>${t.date}</td><td>${t.type}</td><td>${t.symbol}</td><td>${t.amount}</td><td>${t.price}</td><td>${t.fee}</td></tr>`});
+  let txTbl=document.getElementById('txs'); txTbl.innerHTML='<tr><th>تاریخ</th><th>نوع</th><th>نماد</th><th>مقدار</th><th>قیمت</th><th>کارمزد</th><th>حذف</th></tr>';
+  let txsAll=data.transactions||[];
+  txsAll.slice().reverse().slice(0,20).forEach(t=>{
+    let origIdx = txsAll.lastIndexOf(t);
+    txTbl.innerHTML+=`<tr><td>${t.date}</td><td>${t.type}</td><td>${t.symbol}</td><td>${t.amount}</td><td>${t.price}</td><td>${t.fee}</td><td><button onclick="delTx(${origIdx})" style="background:#ef4444;color:white;border:0;border-radius:6px;padding:2px 6px;cursor:pointer">🗑</button></td></tr>`});
   // alerts
   let al=document.getElementById('alerts'); al.innerHTML='';
   (data.alerts||[]).forEach((a,i)=>{
@@ -92,6 +95,9 @@ function drawChart(){
 }
 async function delAsset(i){ if(!confirm('حذف شود؟')) return; await fetch('/api/asset/delete',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({index:i})}); load(); }
 async function delAlert(i){ await fetch('/api/alert/delete',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({index:i})}); load(); }
+async function delTx(i){ if(!confirm('این معامله حذف شود؟')) return; await fetch('/api/tx/delete',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({index:i})}); load(); }
+async function clearAssets(){ if(!confirm('همه دارایی‌ها حذف شوند؟')) return; await fetch('/api/assets/clear',{method:'POST'}); load(); }
+async function clearTxs(){ if(!confirm('همه معاملات حذف شوند؟')) return; await fetch('/api/txs/clear',{method:'POST'}); load(); }
 document.getElementById('addAsset').onsubmit=async e=>{e.preventDefault(); let fd=new FormData(e.target); await fetch('/api/asset/add',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:fd.get('symbol').toUpperCase(), amount:parseFloat(fd.get('amount')), avg_price:parseFloat(fd.get('avg'))})}); e.target.reset(); load();};
 document.getElementById('txForm').onsubmit=async e=>{e.preventDefault(); let fd=new FormData(e.target); await fetch('/api/tx/add',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:fd.get('type'), symbol:fd.get('symbol'), amount:parseFloat(fd.get('amount')), price:parseFloat(fd.get('price')), fee:parseFloat(fd.get('fee')||0)})}); load();};
 document.getElementById('alertForm').onsubmit=async e=>{e.preventDefault(); let fd=new FormData(e.target); await fetch('/api/alert/add',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({symbol:fd.get('symbol'), target:parseFloat(fd.get('target'))})}); load();};
@@ -174,6 +180,20 @@ def add_alert():
 @app.route("/api/alert/delete", methods=["POST"])
 def del_alert():
     d=load_data(); idx=request.json["index"]; d["alerts"].pop(idx); save_data(d); return jsonify({"ok":True})
+
+@app.route("/api/tx/delete", methods=["POST"])
+def del_tx():
+    d=load_data(); idx=request.json["index"]; 
+    if 0 <= idx < len(d.get("transactions",[])): d["transactions"].pop(idx); save_data(d)
+    return jsonify({"ok":True})
+
+@app.route("/api/assets/clear", methods=["POST"])
+def clear_assets():
+    d=load_data(); d["assets"]=[]; save_data(d); return jsonify({"ok":True})
+
+@app.route("/api/txs/clear", methods=["POST"])
+def clear_txs():
+    d=load_data(); d["transactions"]=[]; save_data(d); return jsonify({"ok":True})
 
 @app.route("/api/cash", methods=["POST"])
 def cash():
